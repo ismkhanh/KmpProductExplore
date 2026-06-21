@@ -1,28 +1,24 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+# QMobilityProduct
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+A Kotlin Multiplatform project targeting Android and iOS that displays products from the [DummyJSON API](https://dummyjson.com) with search, pagination, and local favourites.
 
-* [/sharedLogic](./sharedLogic/src) is for the code that will be shared between app targets in the project.
-  The most important subfolder is [commonMain](./sharedLogic/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
+## Architecture
 
-* [/sharedUI](./sharedUI/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./sharedUI/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./sharedUI/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./sharedUI/src/jvmMain/kotlin)
-    folder is the appropriate location.
+The project follows a **Clean Architecture** pattern with three layers — data, domain, and presentation — all wired together with **Koin** dependency injection.
 
-### Running the apps
+- **`/androidApp`** — Android entry point. Contains Jetpack Compose UI screens (`ListScreen`, `DetailScreen`, `FavouritesScreen`) and navigation via `NavHost`.
+- **`/sharedLogic`** — Shared KMP module containing all business logic, networking, and local storage. Platform-specific code (database drivers) lives in `androidMain` and `iosMain` source sets.
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+## Domain Layer
 
-- Android app: `./gradlew :androidApp:assembleDebug`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+**Use cases** encapsulate single pieces of business logic. `PaginatedProductsUseCase` handles paginated product loading, `SearchProductsUseCase` debounces and executes search queries, and `FavouriteUseCase` toggles favourites and broadcasts changes via a `SharedFlow` so multiple ViewModels can react.
 
----
+**Repositories** define data contracts as interfaces in the domain layer. `ProductRepository` abstracts remote API access (product listing, search, detail). `FavouriteRepository` abstracts local persistence (add/remove/query favourites).
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+## Data Layer
+
+Remote data comes from Ktor HTTP client hitting the DummyJSON REST API. Local favourites are persisted in a **SQLDelight** database with platform-specific drivers (`AndroidSqliteDriver` / `NativeSqliteDriver`) provided via the `DatabaseDriverFactory` interface.
+
+## iOS Interop
+
+The [SKIE](https://skie.touchlab.co/) plugin is used to improve Kotlin-to-Swift interop, providing idiomatic Swift APIs for Kotlin sealed classes, coroutines, and flows.
