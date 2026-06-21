@@ -1,9 +1,9 @@
 package com.ism.qmobilityproduct.domain.usecase
 
+import com.ism.qmobilityproduct.domain.model.DataError
 import com.ism.qmobilityproduct.domain.model.PageInfo
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.ProductResult
-import com.ism.qmobilityproduct.domain.model.toUserMessage
 import com.ism.qmobilityproduct.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +14,7 @@ data class PageState(
     val items: List<Product> = emptyList(),
     val pageInfo: PageInfo? = null,
     val isLoading: Boolean = false,
-    val error: String? = null,
+    val error: DataError? = null,
 ) {
     val hasMore: Boolean get() = pageInfo?.hasMore ?: true
 }
@@ -42,7 +42,7 @@ class PaginatedProductsUseCase(private val repository: ProductRepository) {
             is ProductResult.Failure -> _state.update {
                 it.copy(
                     isLoading = false,
-                    error = result.error.toUserMessage(),
+                    error = result.error,
                 )
             }
         }

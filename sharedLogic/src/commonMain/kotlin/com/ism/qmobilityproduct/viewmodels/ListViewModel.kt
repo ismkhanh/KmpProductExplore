@@ -3,6 +3,7 @@ package com.ism.qmobilityproduct.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ism.qmobilityproduct.domain.model.Product
+import com.ism.qmobilityproduct.domain.model.toUserMessage
 import com.ism.qmobilityproduct.domain.usecase.PageState
 import com.ism.qmobilityproduct.domain.usecase.PaginatedProductsUseCase
 import com.ism.qmobilityproduct.domain.usecase.SearchProductsUseCase
@@ -60,7 +61,7 @@ class ListViewModel(
         pageState: PageState,
         searchState: SearchState,
     ): ListUiState = when {
-        pageState.error != null -> ListUiState.Error(pageState.error)
+        pageState.error != null -> ListUiState.Error(pageState.error.toUserMessage())
         pageState.pageInfo == null && pageState.isLoading -> ListUiState.Loading
         searchState.query.isNotBlank() -> ListUiState.Search(
             query = searchState.query,

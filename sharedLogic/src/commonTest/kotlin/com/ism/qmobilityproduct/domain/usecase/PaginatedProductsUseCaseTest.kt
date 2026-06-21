@@ -5,13 +5,13 @@ import com.ism.qmobilityproduct.domain.model.PageInfo
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.ProductPage
 import com.ism.qmobilityproduct.domain.model.ProductResult
-import com.ism.qmobilityproduct.domain.repository.ProductRepository
 import com.ism.qmobilityproduct.fakes.FakeProductRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -69,11 +69,11 @@ class PaginatedProductsUseCaseTest {
         val state = useCase.state.value
         assertTrue(state.items.isEmpty())
         assertFalse(state.isLoading)
-        assertEquals("No internet connection. Please check your network.", state.error)
+        assertIs<DataError.Network>(state.error)
     }
 
     @Test
-    fun loadProducts_serverErrorSetsErrorMessage() = runTest {
+    fun loadProducts_serverErrorSetsError() = runTest {
         repository.getProductsResult = ProductResult.Failure(
             DataError.Server(code = 500, message = "Internal Server Error")
         )
@@ -81,11 +81,12 @@ class PaginatedProductsUseCaseTest {
         useCase.loadProducts()
 
         val state = useCase.state.value
-        assertEquals("Server error (500). Please try again later.", state.error)
+        val error = assertIs<DataError.Server>(state.error)
+        assertEquals(500, error.code)
     }
 
     @Test
-    fun loadProducts_unknownErrorSetsErrorMessage() = runTest {
+    fun loadProducts_unknownErrorSetsError() = runTest {
         repository.getProductsResult = ProductResult.Failure(
             DataError.Unknown("something broke")
         )
@@ -93,7 +94,7 @@ class PaginatedProductsUseCaseTest {
         useCase.loadProducts()
 
         val state = useCase.state.value
-        assertEquals("Something went wrong. Please try again.", state.error)
+        assertIs<DataError.Unknown>(state.error)
     }
 
     @Test
