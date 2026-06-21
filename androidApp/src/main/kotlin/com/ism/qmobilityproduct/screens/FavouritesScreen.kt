@@ -57,35 +57,24 @@ fun FavouritesScreen(
                     CircularProgressIndicator()
                 }
             }
-            is FavouritesUiState.Error -> {
-                Box(
+            is FavouritesUiState.Empty -> {
+                EmptyScreenContent(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(state.message)
-                }
+                )
             }
             is FavouritesUiState.Success -> {
-                if (state.products.isEmpty()) {
-                    EmptyScreenContent(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                    ) {
-                        items(state.products, key = { it.id }) { product ->
-                            ProductRow(
-                                product = product,
-                                onClick = { navigateToDetails(product.id) },
-                            )
-                        }
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                ) {
+                    items(state.products, key = { it.id }) { product ->
+                        ProductRow(
+                            product = product,
+                            onClick = { navigateToDetails(product.id) },
+                        )
                     }
                 }
             }

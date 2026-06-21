@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.ProductResult
 import com.ism.qmobilityproduct.domain.model.toUserMessage
+import com.ism.qmobilityproduct.domain.repository.FavouriteRepository
 import com.ism.qmobilityproduct.domain.repository.ProductRepository
-import com.ism.qmobilityproduct.domain.usecase.FavouriteUseCase
+import com.ism.qmobilityproduct.domain.usecase.ToggleFavouriteUseCase
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,32 +22,25 @@ sealed class ProductDetailState {
 
 class DetailViewModel(
     private val productRepository: ProductRepository,
-    private val favouriteUseCase: FavouriteUseCase,
+    private val favouriteRepository: FavouriteRepository,
+    private val toggleFavouriteUseCase: ToggleFavouriteUseCase,
 ) : ViewModel() {
 
     private val _productDetailState = MutableStateFlow<ProductDetailState>(ProductDetailState.Loading)
     val productDetailState: StateFlow<ProductDetailState> = _productDetailState.asStateFlow()
 
-    init {
-        viewModelScope.launch {
-            favouriteUseCase.events.collect { event ->
-                val currentState = _productDetailState.value
-                if (currentState is ProductDetailState.Success && currentState.product.id == event.productId) {
-                    _productDetailState.value = currentState.copy(isFavourite = event.isFavourite)
-                }
-            }
-        }
-    }
-
     fun getProductDetails(id: Int) {
         viewModelScope.launch {
             _productDetailState.value = ProductDetailState.Loading
-            when (val result = productRepository.getProductById(id)) {
+            val productDetailDeferred = async { productRepository.getProductById(id) }
+            val isFavouriteDeferred = async { favouriteRepository.isFavourite(id) }
+            when (val result = productDetailDeferred.await()) {
                 is ProductResult.Success -> {
-                    val isFavourite = favouriteUseCase.isFavourite(result.data.id)
+                    val isFavourite = isFavouriteDeferred.await()
                     _productDetailState.value = ProductDetailState.Success(result.data, isFavourite)
                 }
                 is ProductResult.Failure -> {
+                    isFavouriteDeferred.cancel()
                     _productDetailState.value = ProductDetailState.Error(result.error.toUserMessage())
                 }
             }
@@ -55,8 +50,11 @@ class DetailViewModel(
     fun toggleFavourite() {
         val currentState = _productDetailState.value
         if (currentState is ProductDetailState.Success) {
-            viewModelScope.launch {
-                favouriteUseCase.toggleFavourite(currentState.product)
+            val newFavourite = !currentState.isFavourite
+            if (_productDetailState.compareAndSet(currentState, currentState.copy(isFavourite = newFavourite))) {
+                viewModelScope.launch {
+                    toggleFavouriteUseCase(currentState.product, newFavourite)
+                }
             }
         }
     }

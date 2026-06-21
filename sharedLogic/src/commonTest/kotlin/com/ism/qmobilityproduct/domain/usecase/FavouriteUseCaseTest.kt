@@ -1,75 +1,50 @@
 package com.ism.qmobilityproduct.domain.usecase
 
 import com.ism.qmobilityproduct.domain.model.Product
+import com.ism.qmobilityproduct.fakes.FakeFavouriteListener
 import com.ism.qmobilityproduct.fakes.FakeFavouriteRepository
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class FavouriteUseCaseTest {
+class ToggleFavouriteUseCaseTest {
 
     private val repository = FakeFavouriteRepository()
-    private val useCase = FavouriteUseCase(repository)
+    private val listener = FakeFavouriteListener()
+    private val useCase = ToggleFavouriteUseCase(repository, listener)
 
     @Test
-    fun isFavourite_returnsFalseWhenNotFavourited() = runTest {
-        assertFalse(useCase.isFavourite(sampleProduct.id))
-    }
-
-    @Test
-    fun isFavourite_returnsTrueAfterToggle() = runTest {
-        useCase.toggleFavourite(sampleProduct)
-        assertTrue(useCase.isFavourite(sampleProduct.id))
-    }
-
-    @Test
-    fun toggleFavourite_addsToFavourites() = runTest {
-        useCase.toggleFavourite(sampleProduct)
+    fun setFavouriteTrue_addsToRepository() = runTest {
+        useCase(sampleProduct, true)
         assertTrue(repository.isFavourite(sampleProduct.id))
     }
 
     @Test
-    fun toggleFavouriteTwice_removesFromFavourites() = runTest {
-        useCase.toggleFavourite(sampleProduct)
-        useCase.toggleFavourite(sampleProduct)
+    fun setFavouriteFalse_removesFromRepository() = runTest {
+        useCase(sampleProduct, true)
+        useCase(sampleProduct, false)
         assertFalse(repository.isFavourite(sampleProduct.id))
     }
 
     @Test
-    fun toggleFavourite_emitsEventWithIsFavouriteTrue() = runTest {
-        var event: FavouriteEvent? = null
-        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            event = useCase.events.first()
-        }
+    fun setFavourite_notifiesListenerWithCorrectEvent() = runTest {
+        useCase(sampleProduct, true)
 
-        useCase.toggleFavourite(sampleProduct)
-        job.join()
-
-        assertEquals(sampleProduct.id, event?.productId)
-        assertTrue(event!!.isFavourite)
+        assertEquals(1, listener.emittedEvents.size)
+        assertEquals(sampleProduct.id, listener.emittedEvents[0].productId)
+        assertTrue(listener.emittedEvents[0].isFavourite)
     }
 
     @Test
-    fun toggleFavouriteTwice_emitsEventWithIsFavouriteFalse() = runTest {
-        val events = mutableListOf<FavouriteEvent>()
-        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            useCase.events.collect { events.add(it) }
-        }
+    fun setFavouriteFalse_notifiesListenerWithFalse() = runTest {
+        useCase(sampleProduct, true)
+        useCase(sampleProduct, false)
 
-        useCase.toggleFavourite(sampleProduct)
-        useCase.toggleFavourite(sampleProduct)
-        job.cancel()
-
-        assertEquals(2, events.size)
-        assertTrue(events[0].isFavourite)
-        assertFalse(events[1].isFavourite)
+        assertEquals(2, listener.emittedEvents.size)
+        assertTrue(listener.emittedEvents[0].isFavourite)
+        assertFalse(listener.emittedEvents[1].isFavourite)
     }
 
     companion object {

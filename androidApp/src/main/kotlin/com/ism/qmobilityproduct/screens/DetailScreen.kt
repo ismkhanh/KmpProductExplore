@@ -80,6 +80,7 @@ fun DetailScreen(productId: Int, navigateBack: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProductDetails(
     product: Product,
@@ -89,7 +90,6 @@ private fun ProductDetails(
 ) {
     Scaffold(
         topBar = {
-            @OptIn(ExperimentalMaterial3Api::class)
             TopAppBar(
                 title = {},
                 navigationIcon = {

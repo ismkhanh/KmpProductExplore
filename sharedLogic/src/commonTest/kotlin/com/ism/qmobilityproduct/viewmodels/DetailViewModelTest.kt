@@ -3,7 +3,8 @@ package com.ism.qmobilityproduct.viewmodels
 import com.ism.qmobilityproduct.domain.model.DataError
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.ProductResult
-import com.ism.qmobilityproduct.domain.usecase.FavouriteUseCase
+import com.ism.qmobilityproduct.domain.usecase.ToggleFavouriteUseCase
+import com.ism.qmobilityproduct.fakes.FakeFavouriteListener
 import com.ism.qmobilityproduct.fakes.FakeFavouriteRepository
 import com.ism.qmobilityproduct.fakes.FakeProductRepository
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +27,8 @@ class DetailViewModelTest {
 
     private lateinit var repository: FakeProductRepository
     private lateinit var favouriteRepository: FakeFavouriteRepository
-    private lateinit var favouriteUseCase: FavouriteUseCase
+    private lateinit var favouriteListener: FakeFavouriteListener
+    private lateinit var toggleFavouriteUseCase: ToggleFavouriteUseCase
     private lateinit var viewModel: DetailViewModel
 
     @BeforeTest
@@ -34,8 +36,9 @@ class DetailViewModelTest {
         Dispatchers.setMain(StandardTestDispatcher())
         repository = FakeProductRepository()
         favouriteRepository = FakeFavouriteRepository()
-        favouriteUseCase = FavouriteUseCase(favouriteRepository)
-        viewModel = DetailViewModel(repository, favouriteUseCase)
+        favouriteListener = FakeFavouriteListener()
+        toggleFavouriteUseCase = ToggleFavouriteUseCase(favouriteRepository, favouriteListener)
+        viewModel = DetailViewModel(repository, favouriteRepository, toggleFavouriteUseCase)
     }
 
     @AfterTest
@@ -121,14 +124,12 @@ class DetailViewModelTest {
     }
 
     @Test
-    fun toggleFavourite_updatesIsFavouriteState() = runTest {
+    fun toggleFavourite_updatesStateImmediately() = runTest {
         repository.getProductByIdResult = ProductResult.Success(sampleProduct)
-
         viewModel.getProductDetails(1)
         advanceUntilIdle()
 
         viewModel.toggleFavourite()
-        advanceUntilIdle()
 
         val state = assertIs<ProductDetailState.Success>(viewModel.productDetailState.value)
         assertTrue(state.isFavourite)
@@ -137,18 +138,28 @@ class DetailViewModelTest {
     @Test
     fun toggleFavouriteTwice_removesFromFavourites() = runTest {
         repository.getProductByIdResult = ProductResult.Success(sampleProduct)
+        viewModel.getProductDetails(1)
+        advanceUntilIdle()
 
+        viewModel.toggleFavourite()
+        viewModel.toggleFavourite()
+
+        val state = assertIs<ProductDetailState.Success>(viewModel.productDetailState.value)
+        assertFalse(state.isFavourite)
+    }
+
+    @Test
+    fun toggleFavourite_notifiesListener() = runTest {
+        repository.getProductByIdResult = ProductResult.Success(sampleProduct)
         viewModel.getProductDetails(1)
         advanceUntilIdle()
 
         viewModel.toggleFavourite()
         advanceUntilIdle()
 
-        viewModel.toggleFavourite()
-        advanceUntilIdle()
-
-        val state = assertIs<ProductDetailState.Success>(viewModel.productDetailState.value)
-        assertFalse(state.isFavourite)
+        assertEquals(1, favouriteListener.emittedEvents.size)
+        assertTrue(favouriteListener.emittedEvents[0].isFavourite)
+        assertEquals(sampleProduct.id, favouriteListener.emittedEvents[0].productId)
     }
 
     companion object {

@@ -1,14 +1,16 @@
 package com.ism.qmobilityproduct.di
 
 import com.ism.qmobilityproduct.data.DatabaseDriverFactory
+import com.ism.qmobilityproduct.data.FavouriteListenerImpl
 import com.ism.qmobilityproduct.data.FavouriteRepositoryImpl
 import com.ism.qmobilityproduct.data.ProductRepositoryImpl
 import com.ism.qmobilityproduct.data.remote.KtorProductApi
 import com.ism.qmobilityproduct.data.remote.ProductApi
 import com.ism.qmobilityproduct.db.AppDatabase
+import com.ism.qmobilityproduct.domain.FavouriteListener
 import com.ism.qmobilityproduct.domain.repository.FavouriteRepository
 import com.ism.qmobilityproduct.domain.repository.ProductRepository
-import com.ism.qmobilityproduct.domain.usecase.FavouriteUseCase
+import com.ism.qmobilityproduct.domain.usecase.ToggleFavouriteUseCase
 import com.ism.qmobilityproduct.domain.usecase.PaginatedProductsUseCase
 import com.ism.qmobilityproduct.domain.usecase.SearchConfig
 import com.ism.qmobilityproduct.domain.usecase.SearchProductsUseCase
@@ -59,18 +61,19 @@ val dataModule = module {
     single<ProductRepository> { ProductRepositoryImpl(productApi = get(), dispatcher = Dispatchers.IO) }
     single { AppDatabase(get<DatabaseDriverFactory>().createDriver()) }
     single<FavouriteRepository> { FavouriteRepositoryImpl(get(), Dispatchers.IO) }
+    single<FavouriteListener> { FavouriteListenerImpl() }
 }
 
 val domainModule = module {
     factory { PaginatedProductsUseCase(get()) }
     factory { SearchProductsUseCase(config = SearchConfig(), repository = get()) }
-    single { FavouriteUseCase(get()) }
+    single { ToggleFavouriteUseCase(get(), get()) }
 }
 
 internal val viewModelModule = module {
     factory { ListViewModel(paginatedProductsUseCase = get(), searchProductsUseCase = get()) }
-    factory { DetailViewModel(productRepository = get(), favouriteUseCase = get()) }
-    factory { FavouritesViewModel(favouriteUseCase = get(), favouriteRepository = get()) }
+    factory { DetailViewModel(productRepository = get(), favouriteRepository = get(), toggleFavouriteUseCase = get()) }
+    factory { FavouritesViewModel(favouriteListener = get(), favouriteRepository = get()) }
 }
 
 fun initKoin(platformModules: List<Module> = emptyList()) {

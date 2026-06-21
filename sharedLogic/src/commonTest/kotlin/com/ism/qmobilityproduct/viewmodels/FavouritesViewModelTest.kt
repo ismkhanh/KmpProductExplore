@@ -1,9 +1,8 @@
 package com.ism.qmobilityproduct.viewmodels
 
-import com.ism.qmobilityproduct.domain.model.DataError
+import com.ism.qmobilityproduct.domain.FavouriteEvent
 import com.ism.qmobilityproduct.domain.model.Product
-import com.ism.qmobilityproduct.domain.model.ProductResult
-import com.ism.qmobilityproduct.domain.usecase.FavouriteUseCase
+import com.ism.qmobilityproduct.fakes.FakeFavouriteListener
 import com.ism.qmobilityproduct.fakes.FakeFavouriteRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,15 +23,15 @@ import kotlin.test.assertIs
 class FavouritesViewModelTest {
 
     private lateinit var favouriteRepository: FakeFavouriteRepository
-    private lateinit var favouriteUseCase: FavouriteUseCase
+    private lateinit var favouriteListener: FakeFavouriteListener
     private lateinit var viewModel: FavouritesViewModel
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(StandardTestDispatcher())
         favouriteRepository = FakeFavouriteRepository()
-        favouriteUseCase = FavouriteUseCase(favouriteRepository)
-        viewModel = FavouritesViewModel(favouriteUseCase, favouriteRepository)
+        favouriteListener = FakeFavouriteListener()
+        viewModel = FavouritesViewModel(favouriteListener, favouriteRepository)
     }
 
     @AfterTest
@@ -46,22 +45,21 @@ class FavouritesViewModelTest {
     }
 
     @Test
-    fun loadsEmptyListWhenNoFavourites() = runTest {
+    fun emitsEmptyWhenNoFavourites() = runTest {
         val values = mutableListOf<FavouritesUiState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect { values.add(it) }
         }
         advanceUntilIdle()
 
-        val state = assertIs<FavouritesUiState.Success>(viewModel.uiState.value)
-        assertEquals(0, state.products.size)
+        assertIs<FavouritesUiState.Empty>(viewModel.uiState.value)
         job.cancel()
     }
 
     @Test
     fun loadsExistingFavourites() = runTest {
-        favouriteRepository.toggleFavourite(sampleProduct1)
-        favouriteRepository.toggleFavourite(sampleProduct2)
+        favouriteRepository.addFavourite(sampleProduct1)
+        favouriteRepository.addFavourite(sampleProduct2)
 
         val values = mutableListOf<FavouritesUiState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -75,39 +73,42 @@ class FavouritesViewModelTest {
     }
 
     @Test
-    fun emitsErrorStateOnFailure() = runTest {
-        favouriteRepository.getAllFavouritesResult = ProductResult.Failure(
-            DataError.Unknown("db error")
-        )
-
+    fun refreshesWhenListenerEmitsEvent() = runTest {
         val values = mutableListOf<FavouritesUiState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect { values.add(it) }
         }
         advanceUntilIdle()
 
-        val state = assertIs<FavouritesUiState.Error>(viewModel.uiState.value)
-        assertEquals("Something went wrong. Please try again.", state.message)
-        job.cancel()
-    }
+        assertIs<FavouritesUiState.Empty>(viewModel.uiState.value)
 
-    @Test
-    fun refreshesWhenFavouriteEventEmitted() = runTest {
-        val values = mutableListOf<FavouritesUiState>()
-        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            viewModel.uiState.collect { values.add(it) }
-        }
-        advanceUntilIdle()
-
-        val emptyState = assertIs<FavouritesUiState.Success>(viewModel.uiState.value)
-        assertEquals(0, emptyState.products.size)
-
-        favouriteUseCase.toggleFavourite(sampleProduct1)
+        favouriteRepository.addFavourite(sampleProduct1)
+        favouriteListener.notifyChanged(FavouriteEvent(sampleProduct1.id, true))
         advanceUntilIdle()
 
         val updatedState = assertIs<FavouritesUiState.Success>(viewModel.uiState.value)
         assertEquals(1, updatedState.products.size)
         assertEquals(sampleProduct1.id, updatedState.products.first().id)
+        job.cancel()
+    }
+
+    @Test
+    fun becomesEmptyWhenLastFavouriteRemoved() = runTest {
+        favouriteRepository.addFavourite(sampleProduct1)
+
+        val values = mutableListOf<FavouritesUiState>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect { values.add(it) }
+        }
+        advanceUntilIdle()
+
+        assertIs<FavouritesUiState.Success>(viewModel.uiState.value)
+
+        favouriteRepository.deleteFavourite(sampleProduct1.id)
+        favouriteListener.notifyChanged(FavouriteEvent(sampleProduct1.id, false))
+        advanceUntilIdle()
+
+        assertIs<FavouritesUiState.Empty>(viewModel.uiState.value)
         job.cancel()
     }
 
