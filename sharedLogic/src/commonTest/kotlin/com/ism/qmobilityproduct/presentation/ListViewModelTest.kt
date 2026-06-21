@@ -1,14 +1,15 @@
-package com.ism.qmobilityproduct.viewmodels
+package com.ism.qmobilityproduct.presentation
 
 import com.ism.qmobilityproduct.domain.model.DataError
 import com.ism.qmobilityproduct.domain.model.PageInfo
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.ProductPage
 import com.ism.qmobilityproduct.domain.model.ProductResult
-import com.ism.qmobilityproduct.domain.usecase.PaginatedProductsUseCase
-import com.ism.qmobilityproduct.domain.usecase.SearchConfig
-import com.ism.qmobilityproduct.domain.usecase.SearchProductsUseCase
 import com.ism.qmobilityproduct.fakes.FakeProductRepository
+import com.ism.qmobilityproduct.presentation.coordinator.PageConfig
+import com.ism.qmobilityproduct.presentation.coordinator.PaginationCoordinator
+import com.ism.qmobilityproduct.presentation.coordinator.SearchConfig
+import com.ism.qmobilityproduct.presentation.coordinator.SearchCoordinator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -29,16 +30,16 @@ import kotlin.test.assertTrue
 class ListViewModelTest {
 
     private lateinit var repository: FakeProductRepository
-    private lateinit var paginatedUseCase: PaginatedProductsUseCase
-    private lateinit var searchUseCase: SearchProductsUseCase
+    private lateinit var paginationCoordinator: PaginationCoordinator
+    private lateinit var searchCoordinator: SearchCoordinator
     private lateinit var viewModel: ListViewModel
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(StandardTestDispatcher())
         repository = FakeProductRepository()
-        paginatedUseCase = PaginatedProductsUseCase(repository)
-        searchUseCase = SearchProductsUseCase(config = SearchConfig(debounceMs = 0), repository = repository)
+        paginationCoordinator = PaginationCoordinator(PageConfig(), repository)
+        searchCoordinator = SearchCoordinator(config = SearchConfig(debounceMs = 0), repository = repository)
     }
 
     @AfterTest
@@ -51,7 +52,7 @@ class ListViewModelTest {
         repository.getProductsResult = ProductResult.Success(
             ProductPage(products = emptyList(), pageInfo = PageInfo(total = 0, skip = 0, limit = 10))
         )
-        viewModel = ListViewModel(paginatedUseCase, searchUseCase)
+        viewModel = ListViewModel(paginationCoordinator, searchCoordinator)
 
         val state = viewModel.uiState.value
         assertIs<ListUiState.Loading>(state)
@@ -65,7 +66,7 @@ class ListViewModelTest {
                 pageInfo = PageInfo(total = 20, skip = 0, limit = 10),
             )
         )
-        viewModel = ListViewModel(paginatedUseCase, searchUseCase)
+        viewModel = ListViewModel(paginationCoordinator, searchCoordinator)
 
         val state = viewModel.uiState.first { it is ListUiState.Products }
 
@@ -82,7 +83,7 @@ class ListViewModelTest {
                 pageInfo = PageInfo(total = 20, skip = 0, limit = 10),
             )
         )
-        viewModel = ListViewModel(paginatedUseCase, searchUseCase)
+        viewModel = ListViewModel(paginationCoordinator, searchCoordinator)
         viewModel.uiState.first { it is ListUiState.Products }
 
         repository.getProductsResult = ProductResult.Success(
@@ -104,7 +105,7 @@ class ListViewModelTest {
         repository.getProductsResult = ProductResult.Failure(
             DataError.Network("no internet")
         )
-        viewModel = ListViewModel(paginatedUseCase, searchUseCase)
+        viewModel = ListViewModel(paginationCoordinator, searchCoordinator)
 
         val state = viewModel.uiState.first { it is ListUiState.Error }
 
@@ -123,7 +124,7 @@ class ListViewModelTest {
         repository.searchProductsResult = ProductResult.Success(
             listOf(product(5), product(6))
         )
-        viewModel = ListViewModel(paginatedUseCase, searchUseCase)
+        viewModel = ListViewModel(paginationCoordinator, searchCoordinator)
         viewModel.uiState.first { it is ListUiState.Products }
 
         viewModel.search("phone")
@@ -147,7 +148,7 @@ class ListViewModelTest {
         repository.searchProductsResult = ProductResult.Success(
             listOf(product(5))
         )
-        viewModel = ListViewModel(paginatedUseCase, searchUseCase)
+        viewModel = ListViewModel(paginationCoordinator, searchCoordinator)
         viewModel.uiState.first { it is ListUiState.Products }
 
         viewModel.search("phone")

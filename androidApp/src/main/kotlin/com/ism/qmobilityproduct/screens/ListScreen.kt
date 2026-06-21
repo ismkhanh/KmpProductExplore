@@ -53,8 +53,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.ism.qmobilityproduct.R
 import com.ism.qmobilityproduct.domain.model.Product
-import com.ism.qmobilityproduct.viewmodels.ListUiState
-import com.ism.qmobilityproduct.viewmodels.ListViewModel
+import com.ism.qmobilityproduct.presentation.ListUiState
+import com.ism.qmobilityproduct.presentation.ListViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

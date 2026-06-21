@@ -1,4 +1,4 @@
-package com.ism.qmobilityproduct.viewmodels
+package com.ism.qmobilityproduct.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,12 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-
-sealed class ProductDetailState {
-    data object Loading : ProductDetailState()
-    data class Success(val product: Product, val isFavourite: Boolean = false) : ProductDetailState()
-    data class Error(val message: String) : ProductDetailState()
-}
 
 class DetailViewModel(
     private val productRepository: ProductRepository,
@@ -58,4 +52,10 @@ class DetailViewModel(
             }
         }
     }
+}
+
+sealed class ProductDetailState {
+    data object Loading : ProductDetailState()
+    data class Success(val product: Product, val isFavourite: Boolean = false) : ProductDetailState()
+    data class Error(val message: String) : ProductDetailState()
 }

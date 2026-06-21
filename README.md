@@ -11,9 +11,13 @@ The project follows a **Clean Architecture** pattern with three layers — data,
 
 ## Domain Layer
 
-**Use cases** encapsulate single pieces of business logic. `PaginatedProductsUseCase` handles paginated product loading, `SearchProductsUseCase` debounces and executes search queries, and `FavouriteUseCase` toggles favourites and broadcasts changes via a `SharedFlow` so multiple ViewModels can react.
+**Use cases** encapsulate business logic. `ToggleFavouriteUseCase` toggles favourites and broadcasts changes via a `SharedFlow`.
 
 **Repositories** define data contracts as interfaces in the domain layer. `ProductRepository` abstracts remote API access (product listing, search, detail). `FavouriteRepository` abstracts local persistence (add/remove/query favourites).
+
+## Presentation Layer
+
+The pagination and search logic each have their own **coordinator** (`PaginationCoordinator`, `SearchCoordinator`) to keep the ViewModel light. Each coordinator owns its own state `PaginationCoordinator` manages next skip value and guards against parallel in-flight requests via an atomic boolean. `SearchCoordinator` handles query debouncing and API calls. `ListViewModel` uses `combine` to merge both coordinator states into a single `ListUiState` flow, acting as a thin mapping layer between coordinators and the UI.
 
 ## Data Layer
 

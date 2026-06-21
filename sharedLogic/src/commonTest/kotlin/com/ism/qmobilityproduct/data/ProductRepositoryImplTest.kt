@@ -2,6 +2,7 @@ package com.ism.qmobilityproduct.data
 
 import com.ism.qmobilityproduct.data.dto.ProductDto
 import com.ism.qmobilityproduct.data.dto.ProductsResponseDto
+import com.ism.qmobilityproduct.data.repository.ProductRepositoryImpl
 import com.ism.qmobilityproduct.domain.model.DataError
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.ProductPage

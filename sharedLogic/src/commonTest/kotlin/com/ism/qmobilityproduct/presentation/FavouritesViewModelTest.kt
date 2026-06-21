@@ -1,6 +1,6 @@
-package com.ism.qmobilityproduct.viewmodels
+package com.ism.qmobilityproduct.presentation
 
-import com.ism.qmobilityproduct.domain.FavouriteEvent
+import com.ism.qmobilityproduct.domain.listener.FavouriteEvent
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.fakes.FakeFavouriteListener
 import com.ism.qmobilityproduct.fakes.FakeFavouriteRepository

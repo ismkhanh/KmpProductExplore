@@ -1,4 +1,4 @@
-package com.ism.qmobilityproduct.domain.usecase
+package com.ism.qmobilityproduct.presentation.coordinator
 
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.ProductResult
@@ -25,7 +25,7 @@ data class SearchConfig(
     val debounceMs: Long = 300L,
 )
 
-class SearchProductsUseCase(
+class SearchCoordinator(
     private val config: SearchConfig,
     private val repository: ProductRepository,
 ) {
@@ -58,5 +58,4 @@ class SearchProductsUseCase(
     fun setQuery(query: String) {
         _query.value = query
     }
-
 }

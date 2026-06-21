@@ -1,7 +1,7 @@
 package com.ism.qmobilityproduct.domain.usecase
 
-import com.ism.qmobilityproduct.domain.FavouriteEvent
-import com.ism.qmobilityproduct.domain.FavouriteListener
+import com.ism.qmobilityproduct.domain.listener.FavouriteEvent
+import com.ism.qmobilityproduct.domain.listener.FavouriteListener
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.repository.FavouriteRepository
 

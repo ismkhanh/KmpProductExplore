@@ -1,11 +1,11 @@
-package com.ism.qmobilityproduct.data
+package com.ism.qmobilityproduct.data.repository
 
 import com.ism.qmobilityproduct.data.mapper.toDomain
 import com.ism.qmobilityproduct.data.remote.ProductApi
 import com.ism.qmobilityproduct.domain.model.DataError
-import com.ism.qmobilityproduct.domain.model.ProductResult
 import com.ism.qmobilityproduct.domain.model.PageInfo
 import com.ism.qmobilityproduct.domain.model.ProductPage
+import com.ism.qmobilityproduct.domain.model.ProductResult
 import com.ism.qmobilityproduct.domain.repository.ProductRepository
 import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.CoroutineDispatcher

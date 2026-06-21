@@ -1,7 +1,7 @@
 package com.ism.qmobilityproduct.fakes
 
-import com.ism.qmobilityproduct.domain.FavouriteEvent
-import com.ism.qmobilityproduct.domain.FavouriteListener
+import com.ism.qmobilityproduct.domain.listener.FavouriteEvent
+import com.ism.qmobilityproduct.domain.listener.FavouriteListener
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow

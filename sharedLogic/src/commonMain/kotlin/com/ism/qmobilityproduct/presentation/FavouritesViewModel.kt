@@ -1,8 +1,8 @@
-package com.ism.qmobilityproduct.viewmodels
+package com.ism.qmobilityproduct.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ism.qmobilityproduct.domain.FavouriteListener
+import com.ism.qmobilityproduct.domain.listener.FavouriteListener
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.repository.FavouriteRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,12 +12,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-
-sealed interface FavouritesUiState {
-    data object Loading : FavouritesUiState
-    data class Success(val products: List<Product>) : FavouritesUiState
-    data object Empty : FavouritesUiState
-}
 
 class FavouritesViewModel(
     favouriteListener: FavouriteListener,
@@ -43,4 +37,10 @@ class FavouritesViewModel(
             FavouritesUiState.Success(products)
         }
     }
+}
+
+sealed interface FavouritesUiState {
+    data object Loading : FavouritesUiState
+    data class Success(val products: List<Product>) : FavouritesUiState
+    data object Empty : FavouritesUiState
 }

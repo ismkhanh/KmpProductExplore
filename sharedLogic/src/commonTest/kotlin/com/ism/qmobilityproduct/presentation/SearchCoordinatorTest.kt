@@ -1,9 +1,12 @@
-package com.ism.qmobilityproduct.domain.usecase
+package com.ism.qmobilityproduct.presentation
 
 import com.ism.qmobilityproduct.domain.model.DataError
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.ProductResult
 import com.ism.qmobilityproduct.fakes.FakeProductRepository
+import com.ism.qmobilityproduct.presentation.coordinator.SearchConfig
+import com.ism.qmobilityproduct.presentation.coordinator.SearchCoordinator
+import com.ism.qmobilityproduct.presentation.coordinator.SearchState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -17,26 +20,25 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SearchProductsUseCaseTest {
+class SearchCoordinatorTest {
 
     private lateinit var repository: FakeProductRepository
-    private lateinit var useCase: SearchProductsUseCase
+    private lateinit var coordinator: SearchCoordinator
 
     @BeforeTest
     fun setUp() {
         repository = FakeProductRepository()
-        useCase = SearchProductsUseCase( SearchConfig(debounceMs = 0), repository,)
+        coordinator = SearchCoordinator(SearchConfig(debounceMs = 0), repository)
     }
 
     @Test
     fun blankQueryEmitsEmptyState() = runTest {
         val emissions = mutableListOf<SearchState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            useCase.searchState.toList(emissions)
+            coordinator.searchState.toList(emissions)
         }
 
-        useCase.setQuery("")
-
+        coordinator.setQuery("")
 
         val last = emissions.last()
         assertEquals("", last.query)
@@ -54,11 +56,10 @@ class SearchProductsUseCaseTest {
 
         val emissions = mutableListOf<SearchState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            useCase.searchState.toList(emissions)
+            coordinator.searchState.toList(emissions)
         }
 
-        useCase.setQuery("phone")
-
+        coordinator.setQuery("phone")
 
         val loading = emissions.first { it.query == "phone" && it.isSearching }
         assertTrue(loading.items.isEmpty())
@@ -79,11 +80,10 @@ class SearchProductsUseCaseTest {
 
         val emissions = mutableListOf<SearchState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            useCase.searchState.toList(emissions)
+            coordinator.searchState.toList(emissions)
         }
 
-        useCase.setQuery("phone")
-
+        coordinator.setQuery("phone")
 
         val result = emissions.last()
         assertEquals("phone", result.query)
@@ -99,11 +99,10 @@ class SearchProductsUseCaseTest {
 
         val emissions = mutableListOf<SearchState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            useCase.searchState.toList(emissions)
+            coordinator.searchState.toList(emissions)
         }
 
-        useCase.setQuery("  phone  ")
-
+        coordinator.setQuery("  phone  ")
 
         assertEquals("phone", repository.lastSearchQuery)
 
@@ -114,11 +113,10 @@ class SearchProductsUseCaseTest {
     fun singleCharQueryDoesNotTriggerSearch() = runTest {
         val emissions = mutableListOf<SearchState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            useCase.searchState.toList(emissions)
+            coordinator.searchState.toList(emissions)
         }
 
-        useCase.setQuery("a")
-
+        coordinator.setQuery("a")
 
         val last = emissions.last()
         assertTrue(last.items.isEmpty())
@@ -132,11 +130,10 @@ class SearchProductsUseCaseTest {
     fun whitespaceOnlyQueryEmitsEmptyState() = runTest {
         val emissions = mutableListOf<SearchState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            useCase.searchState.toList(emissions)
+            coordinator.searchState.toList(emissions)
         }
 
-        useCase.setQuery("   ")
-
+        coordinator.setQuery("   ")
 
         val last = emissions.last()
         assertEquals("", last.query)

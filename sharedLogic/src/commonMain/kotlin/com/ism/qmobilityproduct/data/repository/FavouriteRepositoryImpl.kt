@@ -1,4 +1,4 @@
-package com.ism.qmobilityproduct.data
+package com.ism.qmobilityproduct.data.repository
 
 import com.ism.qmobilityproduct.db.AppDatabase
 import com.ism.qmobilityproduct.domain.model.Product
@@ -30,7 +30,7 @@ class FavouriteRepositoryImpl(
             stock = product.stock.toLong(),
             brand = product.brand,
             thumbnail = product.thumbnail,
-            images = Json.encodeToString(product.images),
+            images = Json.Default.encodeToString(product.images),
         )
     }
 
@@ -51,7 +51,7 @@ class FavouriteRepositoryImpl(
                 stock = row.stock.toInt(),
                 brand = row.brand,
                 thumbnail = row.thumbnail,
-                images = Json.decodeFromString(row.images),
+                images = Json.Default.decodeFromString(row.images),
             )
         }
     }

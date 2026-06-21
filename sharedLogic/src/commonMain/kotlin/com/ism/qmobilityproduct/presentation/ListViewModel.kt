@@ -1,13 +1,13 @@
-package com.ism.qmobilityproduct.viewmodels
+package com.ism.qmobilityproduct.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.toUserMessage
-import com.ism.qmobilityproduct.domain.usecase.PageState
-import com.ism.qmobilityproduct.domain.usecase.PaginatedProductsUseCase
-import com.ism.qmobilityproduct.domain.usecase.SearchProductsUseCase
-import com.ism.qmobilityproduct.domain.usecase.SearchState
+import com.ism.qmobilityproduct.presentation.coordinator.PageState
+import com.ism.qmobilityproduct.presentation.coordinator.PaginationCoordinator
+import com.ism.qmobilityproduct.presentation.coordinator.SearchCoordinator
+import com.ism.qmobilityproduct.presentation.coordinator.SearchState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -15,42 +15,28 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-sealed interface ListUiState {
-    data object Loading : ListUiState
-    data class Products(
-        val items: List<Product>,
-        val isLoadingMore: Boolean,
-    ) : ListUiState
-    data class Search(
-        val query: String,
-        val items: List<Product>,
-        val isSearching: Boolean,
-    ) : ListUiState
-    data class Error(val message: String) : ListUiState
-}
-
 class ListViewModel(
-    private val paginatedProductsUseCase: PaginatedProductsUseCase,
-    private val searchProductsUseCase: SearchProductsUseCase,
+    private val paginationCoordinator: PaginationCoordinator,
+    private val searchCoordinator: SearchCoordinator,
 ) : ViewModel() {
 
     val uiState: StateFlow<ListUiState> = combine(
-        paginatedProductsUseCase.state,
-        searchProductsUseCase.searchState,
+        paginationCoordinator.state,
+        searchCoordinator.searchState,
     ) { pageState, searchState ->
         toUiState(pageState, searchState)
     }
-        .onStart { paginatedProductsUseCase.loadProducts() }
+        .onStart { paginationCoordinator.loadProducts() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ListUiState.Loading)
 
     fun loadMore() {
         viewModelScope.launch {
-            paginatedProductsUseCase.loadProducts()
+            paginationCoordinator.loadProducts()
         }
     }
 
     fun search(query: String) {
-        searchProductsUseCase.setQuery(query)
+        searchCoordinator.setQuery(query)
     }
 
     fun clearSearch() {
@@ -73,4 +59,18 @@ class ListViewModel(
             isLoadingMore = pageState.isLoading,
         )
     }
+}
+
+sealed interface ListUiState {
+    data object Loading : ListUiState
+    data class Products(
+        val items: List<Product>,
+        val isLoadingMore: Boolean,
+    ) : ListUiState
+    data class Search(
+        val query: String,
+        val items: List<Product>,
+        val isSearching: Boolean,
+    ) : ListUiState
+    data class Error(val message: String) : ListUiState
 }

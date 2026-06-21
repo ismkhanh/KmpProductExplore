@@ -21,8 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ism.qmobilityproduct.R
-import com.ism.qmobilityproduct.viewmodels.FavouritesUiState
-import com.ism.qmobilityproduct.viewmodels.FavouritesViewModel
+import com.ism.qmobilityproduct.presentation.FavouritesUiState
+import com.ism.qmobilityproduct.presentation.FavouritesViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

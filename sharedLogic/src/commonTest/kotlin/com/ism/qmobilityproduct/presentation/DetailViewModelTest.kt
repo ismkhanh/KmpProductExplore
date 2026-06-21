@@ -1,4 +1,4 @@
-package com.ism.qmobilityproduct.viewmodels
+package com.ism.qmobilityproduct.presentation
 
 import com.ism.qmobilityproduct.domain.model.DataError
 import com.ism.qmobilityproduct.domain.model.Product

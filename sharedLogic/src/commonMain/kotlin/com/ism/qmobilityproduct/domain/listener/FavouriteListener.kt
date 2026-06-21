@@ -1,10 +1,18 @@
-package com.ism.qmobilityproduct.data
+package com.ism.qmobilityproduct.domain.listener
 
-import com.ism.qmobilityproduct.domain.FavouriteEvent
-import com.ism.qmobilityproduct.domain.FavouriteListener
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+
+data class FavouriteEvent(
+    val productId: Int,
+    val isFavourite: Boolean,
+)
+
+interface FavouriteListener {
+    val events: Flow<FavouriteEvent>
+    fun notifyChanged(event: FavouriteEvent)
+}
 
 class FavouriteListenerImpl : FavouriteListener {
 

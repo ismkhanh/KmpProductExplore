@@ -45,8 +45,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.ism.qmobilityproduct.R
 import com.ism.qmobilityproduct.domain.model.Product
-import com.ism.qmobilityproduct.viewmodels.DetailViewModel
-import com.ism.qmobilityproduct.viewmodels.ProductDetailState
+import com.ism.qmobilityproduct.presentation.DetailViewModel
+import com.ism.qmobilityproduct.presentation.ProductDetailState
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable

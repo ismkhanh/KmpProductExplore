@@ -47,6 +47,7 @@ kotlin {
             implementation(kotlin("test"))
         }
         commonMain.dependencies {
+            implementation(libs.kotlinx.atomicfu)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.content.negotiation)

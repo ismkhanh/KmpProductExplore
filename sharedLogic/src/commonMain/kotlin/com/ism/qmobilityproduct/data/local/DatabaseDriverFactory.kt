@@ -1,4 +1,4 @@
-package com.ism.qmobilityproduct.data
+package com.ism.qmobilityproduct.data.local
 
 import app.cash.sqldelight.db.SqlDriver
 

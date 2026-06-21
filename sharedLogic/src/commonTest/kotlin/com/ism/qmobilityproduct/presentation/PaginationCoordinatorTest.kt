@@ -1,4 +1,4 @@
-package com.ism.qmobilityproduct.domain.usecase
+package com.ism.qmobilityproduct.presentation
 
 import com.ism.qmobilityproduct.domain.model.DataError
 import com.ism.qmobilityproduct.domain.model.PageInfo
@@ -6,6 +6,11 @@ import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.ProductPage
 import com.ism.qmobilityproduct.domain.model.ProductResult
 import com.ism.qmobilityproduct.fakes.FakeProductRepository
+import com.ism.qmobilityproduct.presentation.coordinator.PageConfig
+import com.ism.qmobilityproduct.presentation.coordinator.PaginationCoordinator
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -15,20 +20,21 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class PaginatedProductsUseCaseTest {
+@OptIn(ExperimentalCoroutinesApi::class)
+class PaginationCoordinatorTest {
 
     private lateinit var repository: FakeProductRepository
-    private lateinit var useCase: PaginatedProductsUseCase
+    private lateinit var coordinator: PaginationCoordinator
 
     @BeforeTest
     fun setUp() {
         repository = FakeProductRepository()
-        useCase = PaginatedProductsUseCase(repository)
+        coordinator = PaginationCoordinator(PageConfig(), repository)
     }
 
     @Test
     fun initialStateIsEmpty() {
-        val state = useCase.state.value
+        val state = coordinator.state.value
         assertTrue(state.items.isEmpty())
         assertNull(state.pageInfo)
         assertFalse(state.isLoading)
@@ -45,9 +51,9 @@ class PaginatedProductsUseCaseTest {
             )
         )
 
-        useCase.loadProducts()
+        coordinator.loadProducts()
 
-        val state = useCase.state.value
+        val state = coordinator.state.value
         assertEquals(2, state.items.size)
         assertEquals(1, state.items[0].id)
         assertEquals(2, state.items[1].id)
@@ -64,9 +70,9 @@ class PaginatedProductsUseCaseTest {
             DataError.Network("timeout")
         )
 
-        useCase.loadProducts()
+        coordinator.loadProducts()
 
-        val state = useCase.state.value
+        val state = coordinator.state.value
         assertTrue(state.items.isEmpty())
         assertFalse(state.isLoading)
         assertIs<DataError.Network>(state.error)
@@ -78,9 +84,9 @@ class PaginatedProductsUseCaseTest {
             DataError.Server(code = 500, message = "Internal Server Error")
         )
 
-        useCase.loadProducts()
+        coordinator.loadProducts()
 
-        val state = useCase.state.value
+        val state = coordinator.state.value
         val error = assertIs<DataError.Server>(state.error)
         assertEquals(500, error.code)
     }
@@ -91,9 +97,9 @@ class PaginatedProductsUseCaseTest {
             DataError.Unknown("something broke")
         )
 
-        useCase.loadProducts()
+        coordinator.loadProducts()
 
-        val state = useCase.state.value
+        val state = coordinator.state.value
         assertIs<DataError.Unknown>(state.error)
     }
 
@@ -105,7 +111,7 @@ class PaginatedProductsUseCaseTest {
                 pageInfo = PageInfo(total = 20, skip = 0, limit = 10),
             )
         )
-        useCase.loadProducts()
+        coordinator.loadProducts()
 
         repository.getProductsResult = ProductResult.Success(
             ProductPage(
@@ -113,9 +119,9 @@ class PaginatedProductsUseCaseTest {
                 pageInfo = PageInfo(total = 20, skip = 10, limit = 10),
             )
         )
-        useCase.loadProducts()
+        coordinator.loadProducts()
 
-        val state = useCase.state.value
+        val state = coordinator.state.value
         assertEquals(4, state.items.size)
         assertEquals(listOf(1, 2, 3, 4), state.items.map { it.id })
         assertFalse(state.hasMore)
@@ -129,11 +135,11 @@ class PaginatedProductsUseCaseTest {
                 pageInfo = PageInfo(total = 1, skip = 0, limit = 10),
             )
         )
-        useCase.loadProducts()
-        assertFalse(useCase.state.value.hasMore)
+        coordinator.loadProducts()
+        assertFalse(coordinator.state.value.hasMore)
 
         repository.getProductsCallCount = 0
-        useCase.loadProducts()
+        coordinator.loadProducts()
         assertEquals(0, repository.getProductsCallCount)
     }
 
@@ -145,7 +151,7 @@ class PaginatedProductsUseCaseTest {
                 pageInfo = PageInfo(total = 20, skip = 0, limit = 10),
             )
         )
-        useCase.loadProducts()
+        coordinator.loadProducts()
 
         repository.getProductsResult = ProductResult.Success(
             ProductPage(
@@ -153,9 +159,28 @@ class PaginatedProductsUseCaseTest {
                 pageInfo = PageInfo(total = 20, skip = 10, limit = 10),
             )
         )
-        useCase.loadProducts()
+        coordinator.loadProducts()
 
         assertEquals(10, repository.lastRequestedSkip)
+    }
+
+    @Test
+    fun loadProducts_concurrentCallsOnlyExecuteOnce() = runTest {
+        repository.getProductsDelayMs = 100
+        repository.getProductsResult = ProductResult.Success(
+            ProductPage(
+                products = listOf(product(1)),
+                pageInfo = PageInfo(total = 20, skip = 0, limit = 10),
+            )
+        )
+
+        launch { coordinator.loadProducts() }
+        launch { coordinator.loadProducts() }
+        launch { coordinator.loadProducts() }
+        advanceUntilIdle()
+
+        assertEquals(1, repository.getProductsCallCount)
+        assertEquals(1, coordinator.state.value.items.size)
     }
 }
 

@@ -1,22 +1,23 @@
 package com.ism.qmobilityproduct.di
 
-import com.ism.qmobilityproduct.data.DatabaseDriverFactory
-import com.ism.qmobilityproduct.data.FavouriteListenerImpl
-import com.ism.qmobilityproduct.data.FavouriteRepositoryImpl
-import com.ism.qmobilityproduct.data.ProductRepositoryImpl
+import com.ism.qmobilityproduct.domain.listener.FavouriteListenerImpl
+import com.ism.qmobilityproduct.data.local.DatabaseDriverFactory
+import com.ism.qmobilityproduct.data.repository.FavouriteRepositoryImpl
+import com.ism.qmobilityproduct.data.repository.ProductRepositoryImpl
 import com.ism.qmobilityproduct.data.remote.KtorProductApi
 import com.ism.qmobilityproduct.data.remote.ProductApi
 import com.ism.qmobilityproduct.db.AppDatabase
-import com.ism.qmobilityproduct.domain.FavouriteListener
+import com.ism.qmobilityproduct.domain.listener.FavouriteListener
 import com.ism.qmobilityproduct.domain.repository.FavouriteRepository
 import com.ism.qmobilityproduct.domain.repository.ProductRepository
 import com.ism.qmobilityproduct.domain.usecase.ToggleFavouriteUseCase
-import com.ism.qmobilityproduct.domain.usecase.PaginatedProductsUseCase
-import com.ism.qmobilityproduct.domain.usecase.SearchConfig
-import com.ism.qmobilityproduct.domain.usecase.SearchProductsUseCase
-import com.ism.qmobilityproduct.viewmodels.DetailViewModel
-import com.ism.qmobilityproduct.viewmodels.FavouritesViewModel
-import com.ism.qmobilityproduct.viewmodels.ListViewModel
+import com.ism.qmobilityproduct.presentation.DetailViewModel
+import com.ism.qmobilityproduct.presentation.FavouritesViewModel
+import com.ism.qmobilityproduct.presentation.ListViewModel
+import com.ism.qmobilityproduct.presentation.coordinator.PageConfig
+import com.ism.qmobilityproduct.presentation.coordinator.PaginationCoordinator
+import com.ism.qmobilityproduct.presentation.coordinator.SearchConfig
+import com.ism.qmobilityproduct.presentation.coordinator.SearchCoordinator
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -65,13 +66,13 @@ val dataModule = module {
 }
 
 val domainModule = module {
-    factory { PaginatedProductsUseCase(get()) }
-    factory { SearchProductsUseCase(config = SearchConfig(), repository = get()) }
     single { ToggleFavouriteUseCase(get(), get()) }
 }
 
-internal val viewModelModule = module {
-    factory { ListViewModel(paginatedProductsUseCase = get(), searchProductsUseCase = get()) }
+val presentationModule = module {
+    factory { PaginationCoordinator(config = PageConfig(), repository = get()) }
+    factory { SearchCoordinator(config = SearchConfig(), repository = get()) }
+    factory { ListViewModel(paginationCoordinator = get(), searchCoordinator = get()) }
     factory { DetailViewModel(productRepository = get(), favouriteRepository = get(), toggleFavouriteUseCase = get()) }
     factory { FavouritesViewModel(favouriteListener = get(), favouriteRepository = get()) }
 }
@@ -82,7 +83,7 @@ fun initKoin(platformModules: List<Module> = emptyList()) {
             networkModule,
             dataModule,
             domainModule,
-            viewModelModule,
+            presentationModule,
         ))
     }
 }
