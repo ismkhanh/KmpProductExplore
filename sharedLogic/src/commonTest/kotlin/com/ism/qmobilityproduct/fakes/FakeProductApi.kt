@@ -1,4 +1,4 @@
-package com.ism.qmobilityproduct.remote
+package com.ism.qmobilityproduct.fakes
 
 import com.ism.qmobilityproduct.data.dto.ProductDto
 import com.ism.qmobilityproduct.data.dto.ProductsResponseDto

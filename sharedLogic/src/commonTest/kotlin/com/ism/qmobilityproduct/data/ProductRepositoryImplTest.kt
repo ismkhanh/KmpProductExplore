@@ -6,7 +6,7 @@ import com.ism.qmobilityproduct.domain.model.DataError
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.ProductPage
 import com.ism.qmobilityproduct.domain.model.ProductResult
-import com.ism.qmobilityproduct.remote.FakeProductApi
+import com.ism.qmobilityproduct.fakes.FakeProductApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.IOException
