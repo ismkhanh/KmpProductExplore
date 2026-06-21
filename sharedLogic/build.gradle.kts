@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.skie)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -35,9 +36,11 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.sqldelight.android.driver)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.sqldelight.native.driver)
         }
         commonTest.dependencies {
             implementation(libs.kotlinx.coroutines.test)
@@ -50,6 +53,15 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.koin.core)
             api(libs.lifecycle.viewmodel)
+            implementation(libs.sqldelight.coroutines.extensions)
+        }
+    }
+}
+
+sqldelight {
+    databases {
+        register("AppDatabase") {
+            packageName.set("com.ism.qmobilityproduct.db")
         }
     }
 }

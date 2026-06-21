@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.ism.qmobilityproduct.screens.DetailScreen
+import com.ism.qmobilityproduct.screens.FavouritesScreen
 import com.ism.qmobilityproduct.screens.ListScreen
 import kotlinx.serialization.Serializable
 
@@ -47,7 +48,14 @@ fun App() {
                     )
                 }
                 composable<FavouritesDestination> {
-                    Column { }
+                    FavouritesScreen(
+                        navigateToDetails = { productId ->
+                            navController.navigate(DetailDestination(productId))
+                        },
+                        navigateBack = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
                 composable<DetailDestination> { backStackEntry ->
                     DetailScreen(

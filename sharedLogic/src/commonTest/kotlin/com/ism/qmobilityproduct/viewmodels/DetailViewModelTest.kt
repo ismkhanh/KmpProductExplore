@@ -3,6 +3,8 @@ package com.ism.qmobilityproduct.viewmodels
 import com.ism.qmobilityproduct.domain.model.DataError
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.ProductResult
+import com.ism.qmobilityproduct.domain.usecase.FavouriteUseCase
+import com.ism.qmobilityproduct.fakes.FakeFavouriteRepository
 import com.ism.qmobilityproduct.fakes.FakeProductRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,19 +17,25 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DetailViewModelTest {
 
     private lateinit var repository: FakeProductRepository
+    private lateinit var favouriteRepository: FakeFavouriteRepository
+    private lateinit var favouriteUseCase: FavouriteUseCase
     private lateinit var viewModel: DetailViewModel
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(StandardTestDispatcher())
         repository = FakeProductRepository()
-        viewModel = DetailViewModel(repository)
+        favouriteRepository = FakeFavouriteRepository()
+        favouriteUseCase = FavouriteUseCase(favouriteRepository)
+        viewModel = DetailViewModel(repository, favouriteUseCase)
     }
 
     @AfterTest
@@ -99,6 +107,48 @@ class DetailViewModelTest {
 
         val state = assertIs<ProductDetailState.Error>(viewModel.productDetailState.value)
         assertEquals("Something went wrong. Please try again.", state.message)
+    }
+
+    @Test
+    fun getProductDetails_isFavouriteFalseByDefault() = runTest {
+        repository.getProductByIdResult = ProductResult.Success(sampleProduct)
+
+        viewModel.getProductDetails(1)
+        advanceUntilIdle()
+
+        val state = assertIs<ProductDetailState.Success>(viewModel.productDetailState.value)
+        assertFalse(state.isFavourite)
+    }
+
+    @Test
+    fun toggleFavourite_updatesIsFavouriteState() = runTest {
+        repository.getProductByIdResult = ProductResult.Success(sampleProduct)
+
+        viewModel.getProductDetails(1)
+        advanceUntilIdle()
+
+        viewModel.toggleFavourite()
+        advanceUntilIdle()
+
+        val state = assertIs<ProductDetailState.Success>(viewModel.productDetailState.value)
+        assertTrue(state.isFavourite)
+    }
+
+    @Test
+    fun toggleFavouriteTwice_removesFromFavourites() = runTest {
+        repository.getProductByIdResult = ProductResult.Success(sampleProduct)
+
+        viewModel.getProductDetails(1)
+        advanceUntilIdle()
+
+        viewModel.toggleFavourite()
+        advanceUntilIdle()
+
+        viewModel.toggleFavourite()
+        advanceUntilIdle()
+
+        val state = assertIs<ProductDetailState.Success>(viewModel.productDetailState.value)
+        assertFalse(state.isFavourite)
     }
 
     companion object {

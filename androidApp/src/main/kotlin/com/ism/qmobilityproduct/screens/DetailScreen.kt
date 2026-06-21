@@ -16,9 +16,12 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +67,8 @@ fun DetailScreen(productId: Int, navigateBack: () -> Unit) {
         is ProductDetailState.Success -> {
             ProductDetails(
                 product = state.product,
+                isFavourite = state.isFavourite,
+                onFavouriteClick = viewModel::toggleFavourite,
                 onBackClick = navigateBack,
             )
         }
@@ -78,6 +83,8 @@ fun DetailScreen(productId: Int, navigateBack: () -> Unit) {
 @Composable
 private fun ProductDetails(
     product: Product,
+    isFavourite: Boolean,
+    onFavouriteClick: () -> Unit,
     onBackClick: () -> Unit,
 ) {
     Scaffold(
@@ -91,6 +98,15 @@ private fun ProductDetails(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onFavouriteClick) {
+                Icon(
+                    imageVector = if (isFavourite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = if (isFavourite) stringResource(R.string.remove_favourite)
+                        else stringResource(R.string.add_favourite),
+                )
+            }
         },
     ) { paddingValues ->
         Column(

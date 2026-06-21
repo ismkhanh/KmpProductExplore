@@ -1,0 +1,29 @@
+CREATE TABLE favouriteProduct (
+    id INTEGER NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    category TEXT NOT NULL,
+    price REAL NOT NULL,
+    discountPercentage REAL NOT NULL,
+    rating REAL NOT NULL,
+    stock INTEGER NOT NULL,
+    brand TEXT NOT NULL,
+    thumbnail TEXT NOT NULL,
+    images TEXT NOT NULL
+);
+
+getAll:
+SELECT * FROM favouriteProduct;
+
+getById:
+SELECT * FROM favouriteProduct WHERE id = ?;
+
+isFavourite:
+SELECT COUNT(*) FROM favouriteProduct WHERE id = ?;
+
+insertOrReplace:
+INSERT OR REPLACE INTO favouriteProduct (id, title, description, category, price, discountPercentage, rating, stock, brand, thumbnail, images)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteById:
+DELETE FROM favouriteProduct WHERE id = ?;
