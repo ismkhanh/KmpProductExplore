@@ -39,8 +39,13 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
+        commonTest.dependencies {
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(kotlin("test"))
+        }
         commonMain.dependencies {
             implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.koin.core)

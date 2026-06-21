@@ -32,13 +32,11 @@ fun App() {
                 Text("Click me!")
             }
             AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Image(painterResource(R.drawable.ic_launcher_foreground), null)
-                    Text("Compose: $greeting")
                 }
             }
         }
