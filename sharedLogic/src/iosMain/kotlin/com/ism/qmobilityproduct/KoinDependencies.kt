@@ -17,7 +17,7 @@ fun initKoinIos() {
 }
 
 class KoinDependencies : KoinComponent {
-    val listViewModel: ListViewModel get() = get()
-    val detailViewModel: DetailViewModel get() = get()
-    val favouritesViewModel: FavouritesViewModel get() = get()
+    val listViewModel: ListViewModel = get()
+    val detailViewModel: DetailViewModel = get()
+    val favouritesViewModel: FavouritesViewModel = get()
 }
