@@ -24,7 +24,11 @@ class FakeProductRepository : ProductRepository {
         return searchProductsResult!!
     }
 
+    var getProductByIdResult: ProductResult<Product>? = null
+    var lastRequestedProductId: Int? = null
+
     override suspend fun getProductById(id: Int): ProductResult<Product> {
-        throw NotImplementedError()
+        lastRequestedProductId = id
+        return getProductByIdResult!!
     }
 }
