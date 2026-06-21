@@ -16,8 +16,12 @@ class FakeProductRepository : ProductRepository {
         return getProductsResult!!
     }
 
+    var searchProductsResult: ProductResult<List<Product>>? = null
+    var lastSearchQuery: String? = null
+
     override suspend fun searchProducts(query: String): ProductResult<List<Product>> {
-        throw NotImplementedError()
+        lastSearchQuery = query
+        return searchProductsResult!!
     }
 
     override suspend fun getProductById(id: Int): ProductResult<Product> {
