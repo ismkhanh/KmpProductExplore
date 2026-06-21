@@ -22,3 +22,11 @@ Remote data comes from Ktor HTTP client hitting the DummyJSON REST API. Local fa
 ## iOS Interop
 
 The [SKIE](https://skie.touchlab.co/) plugin is used to improve Kotlin-to-Swift interop, providing idiomatic Swift APIs for Kotlin sealed classes, coroutines, and flows.
+
+## Demo
+
+https://github.com/user-attachments/assets/34cbeb43-04d7-428d-8245-e54a8c0f97db
+
+
+
+
