@@ -4,7 +4,6 @@ import com.ism.qmobilityproduct.domain.model.DataError
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.model.ProductResult
 import com.ism.qmobilityproduct.domain.usecase.ToggleFavouriteUseCase
-import com.ism.qmobilityproduct.fakes.FakeFavouriteListener
 import com.ism.qmobilityproduct.fakes.FakeFavouriteRepository
 import com.ism.qmobilityproduct.fakes.FakeProductRepository
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +26,6 @@ class DetailViewModelTest {
 
     private lateinit var repository: FakeProductRepository
     private lateinit var favouriteRepository: FakeFavouriteRepository
-    private lateinit var favouriteListener: FakeFavouriteListener
     private lateinit var toggleFavouriteUseCase: ToggleFavouriteUseCase
     private lateinit var viewModel: DetailViewModel
 
@@ -36,8 +34,7 @@ class DetailViewModelTest {
         Dispatchers.setMain(StandardTestDispatcher())
         repository = FakeProductRepository()
         favouriteRepository = FakeFavouriteRepository()
-        favouriteListener = FakeFavouriteListener()
-        toggleFavouriteUseCase = ToggleFavouriteUseCase(favouriteRepository, favouriteListener)
+        toggleFavouriteUseCase = ToggleFavouriteUseCase(favouriteRepository)
         viewModel = DetailViewModel(repository, favouriteRepository, toggleFavouriteUseCase)
     }
 
@@ -149,7 +146,7 @@ class DetailViewModelTest {
     }
 
     @Test
-    fun toggleFavourite_notifiesListener() = runTest {
+    fun toggleFavourite_persistsToRepository() = runTest {
         repository.getProductByIdResult = ProductResult.Success(sampleProduct)
         viewModel.getProductDetails(1)
         advanceUntilIdle()
@@ -157,9 +154,7 @@ class DetailViewModelTest {
         viewModel.toggleFavourite()
         advanceUntilIdle()
 
-        assertEquals(1, favouriteListener.emittedEvents.size)
-        assertTrue(favouriteListener.emittedEvents[0].isFavourite)
-        assertEquals(sampleProduct.id, favouriteListener.emittedEvents[0].productId)
+        assertTrue(favouriteRepository.isFavourite(sampleProduct.id))
     }
 
     companion object {

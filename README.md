@@ -11,7 +11,7 @@ The project follows a **Clean Architecture** pattern with three layers — data,
 
 ## Domain Layer
 
-**Use cases** encapsulate business logic. `ToggleFavouriteUseCase` toggles favourites and broadcasts changes via a `SharedFlow`.
+**Use cases** encapsulate business logic. `ToggleFavouriteUseCase` toggles favourites by writing to the local database; updates propagate automatically via SQLDelight's reactive queries.
 
 **Repositories** define data contracts as interfaces in the domain layer. `ProductRepository` abstracts remote API access (product listing, search, detail). `FavouriteRepository` abstracts local persistence (add/remove/query favourites).
 

@@ -1,9 +1,14 @@
 package com.ism.qmobilityproduct.data.repository
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import com.ism.qmobilityproduct.db.AppDatabase
+import com.ism.qmobilityproduct.db.FavouriteProduct
 import com.ism.qmobilityproduct.domain.model.Product
 import com.ism.qmobilityproduct.domain.repository.FavouriteRepository
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
@@ -13,6 +18,13 @@ class FavouriteRepositoryImpl(
 ) : FavouriteRepository {
 
     private val queries get() = database.favouriteQueries
+
+    override fun observeAll(): Flow<List<Product>> {
+        return queries.getAll()
+            .asFlow()
+            .mapToList(dispatcher)
+            .map { rows -> rows.map { it.toProduct() } }
+    }
 
     override suspend fun isFavourite(productId: Int): Boolean = withContext(dispatcher) {
         queries.isFavourite(productId.toLong()).executeAsOne() > 0
@@ -38,21 +50,17 @@ class FavouriteRepositoryImpl(
         queries.deleteById(productId.toLong())
     }
 
-    override suspend fun getAllFavourites(): List<Product> = withContext(dispatcher) {
-        queries.getAll().executeAsList().map { row ->
-            Product(
-                id = row.id.toInt(),
-                title = row.title,
-                description = row.description,
-                category = row.category,
-                price = row.price,
-                discountPercentage = row.discountPercentage,
-                rating = row.rating,
-                stock = row.stock.toInt(),
-                brand = row.brand,
-                thumbnail = row.thumbnail,
-                images = Json.Default.decodeFromString(row.images),
-            )
-        }
-    }
+    private fun FavouriteProduct.toProduct(): Product = Product(
+        id = id.toInt(),
+        title = title,
+        description = description,
+        category = category,
+        price = price,
+        discountPercentage = discountPercentage,
+        rating = rating,
+        stock = stock.toInt(),
+        brand = brand,
+        thumbnail = thumbnail,
+        images = Json.Default.decodeFromString(images),
+    )
 }

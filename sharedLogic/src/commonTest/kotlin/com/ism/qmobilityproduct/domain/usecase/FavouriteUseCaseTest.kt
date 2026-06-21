@@ -1,19 +1,16 @@
 package com.ism.qmobilityproduct.domain.usecase
 
 import com.ism.qmobilityproduct.domain.model.Product
-import com.ism.qmobilityproduct.fakes.FakeFavouriteListener
 import com.ism.qmobilityproduct.fakes.FakeFavouriteRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class ToggleFavouriteUseCaseTest {
 
     private val repository = FakeFavouriteRepository()
-    private val listener = FakeFavouriteListener()
-    private val useCase = ToggleFavouriteUseCase(repository, listener)
+    private val useCase = ToggleFavouriteUseCase(repository)
 
     @Test
     fun setFavouriteTrue_addsToRepository() = runTest {
@@ -26,25 +23,6 @@ class ToggleFavouriteUseCaseTest {
         useCase(sampleProduct, true)
         useCase(sampleProduct, false)
         assertFalse(repository.isFavourite(sampleProduct.id))
-    }
-
-    @Test
-    fun setFavourite_notifiesListenerWithCorrectEvent() = runTest {
-        useCase(sampleProduct, true)
-
-        assertEquals(1, listener.emittedEvents.size)
-        assertEquals(sampleProduct.id, listener.emittedEvents[0].productId)
-        assertTrue(listener.emittedEvents[0].isFavourite)
-    }
-
-    @Test
-    fun setFavouriteFalse_notifiesListenerWithFalse() = runTest {
-        useCase(sampleProduct, true)
-        useCase(sampleProduct, false)
-
-        assertEquals(2, listener.emittedEvents.size)
-        assertTrue(listener.emittedEvents[0].isFavourite)
-        assertFalse(listener.emittedEvents[1].isFavourite)
     }
 
     companion object {

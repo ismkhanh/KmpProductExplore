@@ -1,8 +1,6 @@
 package com.ism.qmobilityproduct.presentation
 
-import com.ism.qmobilityproduct.domain.listener.FavouriteEvent
 import com.ism.qmobilityproduct.domain.model.Product
-import com.ism.qmobilityproduct.fakes.FakeFavouriteListener
 import com.ism.qmobilityproduct.fakes.FakeFavouriteRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,15 +21,13 @@ import kotlin.test.assertIs
 class FavouritesViewModelTest {
 
     private lateinit var favouriteRepository: FakeFavouriteRepository
-    private lateinit var favouriteListener: FakeFavouriteListener
     private lateinit var viewModel: FavouritesViewModel
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(StandardTestDispatcher())
         favouriteRepository = FakeFavouriteRepository()
-        favouriteListener = FakeFavouriteListener()
-        viewModel = FavouritesViewModel(favouriteListener, favouriteRepository)
+        viewModel = FavouritesViewModel(favouriteRepository)
     }
 
     @AfterTest
@@ -73,7 +69,7 @@ class FavouritesViewModelTest {
     }
 
     @Test
-    fun refreshesWhenListenerEmitsEvent() = runTest {
+    fun updatesWhenFavouriteAdded() = runTest {
         val values = mutableListOf<FavouritesUiState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect { values.add(it) }
@@ -83,7 +79,6 @@ class FavouritesViewModelTest {
         assertIs<FavouritesUiState.Empty>(viewModel.uiState.value)
 
         favouriteRepository.addFavourite(sampleProduct1)
-        favouriteListener.notifyChanged(FavouriteEvent(sampleProduct1.id, true))
         advanceUntilIdle()
 
         val updatedState = assertIs<FavouritesUiState.Success>(viewModel.uiState.value)
@@ -105,7 +100,6 @@ class FavouritesViewModelTest {
         assertIs<FavouritesUiState.Success>(viewModel.uiState.value)
 
         favouriteRepository.deleteFavourite(sampleProduct1.id)
-        favouriteListener.notifyChanged(FavouriteEvent(sampleProduct1.id, false))
         advanceUntilIdle()
 
         assertIs<FavouritesUiState.Empty>(viewModel.uiState.value)

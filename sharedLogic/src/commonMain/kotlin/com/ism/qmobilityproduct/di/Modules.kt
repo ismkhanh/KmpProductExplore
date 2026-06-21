@@ -1,13 +1,11 @@
 package com.ism.qmobilityproduct.di
 
-import com.ism.qmobilityproduct.domain.listener.FavouriteListenerImpl
 import com.ism.qmobilityproduct.data.local.DatabaseDriverFactory
 import com.ism.qmobilityproduct.data.repository.FavouriteRepositoryImpl
 import com.ism.qmobilityproduct.data.repository.ProductRepositoryImpl
 import com.ism.qmobilityproduct.data.remote.KtorProductApi
 import com.ism.qmobilityproduct.data.remote.ProductApi
 import com.ism.qmobilityproduct.db.AppDatabase
-import com.ism.qmobilityproduct.domain.listener.FavouriteListener
 import com.ism.qmobilityproduct.domain.repository.FavouriteRepository
 import com.ism.qmobilityproduct.domain.repository.ProductRepository
 import com.ism.qmobilityproduct.domain.usecase.ToggleFavouriteUseCase
@@ -62,11 +60,10 @@ val dataModule = module {
     single<ProductRepository> { ProductRepositoryImpl(productApi = get(), dispatcher = Dispatchers.IO) }
     single { AppDatabase(get<DatabaseDriverFactory>().createDriver()) }
     single<FavouriteRepository> { FavouriteRepositoryImpl(get(), Dispatchers.IO) }
-    single<FavouriteListener> { FavouriteListenerImpl() }
 }
 
 val domainModule = module {
-    single { ToggleFavouriteUseCase(get(), get()) }
+    single { ToggleFavouriteUseCase(get()) }
 }
 
 val presentationModule = module {
@@ -74,7 +71,7 @@ val presentationModule = module {
     factory { SearchCoordinator(config = SearchConfig(), repository = get()) }
     factory { ListViewModel(paginationCoordinator = get(), searchCoordinator = get()) }
     factory { DetailViewModel(productRepository = get(), favouriteRepository = get(), toggleFavouriteUseCase = get()) }
-    factory { FavouritesViewModel(favouriteListener = get(), favouriteRepository = get()) }
+    factory { FavouritesViewModel(favouriteRepository = get()) }
 }
 
 fun initKoin(platformModules: List<Module> = emptyList()) {
