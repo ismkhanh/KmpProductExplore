@@ -1,4 +1,4 @@
-# QMobilityProduct
+# KmpProductExplore
 
 A Kotlin Multiplatform project targeting Android and iOS that displays products from the [DummyJSON API](https://dummyjson.com) with search, pagination, and local favourites.
 
